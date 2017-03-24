@@ -3,8 +3,8 @@ package evolv.io;
 public class Configuration {
 	// EvolvioColor
 	public static final float NOISE_STEP_SIZE = 0.1f;
-	public static final int BOARD_WIDTH = 100;
-	public static final int BOARD_HEIGHT = 100;
+	public static final int BOARD_WIDTH = 50;
+	public static final int BOARD_HEIGHT = 50;
 	public static final float SCALE_TO_FIXBUG = 100;
 	public static final float TIME_STEP = 0.001f;
 	public static final float MINIMUM_TEMPERATURE = -0.5f;
@@ -31,6 +31,10 @@ public class Configuration {
 	public static final double MAX_DETAILED_ZOOM = 3.5;
 	public static final int LIST_SLOTS = 6;
 	public static final double FLASH_SPEED = 80;
+	
+	public static final float DEATH_ENERGY_MULTIPLIER = 0.5f;
+	public static final int DEATH_PIECES = 10;
+	public static final float KILL_ENERGY_MULTIPLIER = 5f;
 
 	// Brain
 	public static final int MEMORY_COUNT = 1;
@@ -51,15 +55,15 @@ public class Configuration {
 	public static final int MUTATE_POWER = 9;
 
 	// Creature
-	public static final double ACCELERATION_ENERGY = 0.18;
-	public static final double ACCELERATION_BACKWARDS_ENERGY = 0.24;
+	public static final double ACCELERATION_ENERGY = 0.08;
+	public static final double ACCELERATION_BACKWARDS_ENERGY = 0.1;
 	public static final double SWIM_ENERGY = 0.008;
-	public static final double TURN_ENERGY = 0.06;
+	public static final double TURN_ENERGY = 0.12;
 	public static final double EAT_ENERGY = 0.05;
 	public static final double EAT_SPEED = 0.5;
 	public static final double EAT_WHILE_MOVING_INEFFICIENCY_MULTIPLIER = 2.0;
 	public static final int ENERGY_HISTORY_LENGTH = 6;
-	public static final double FIGHT_ENERGY = 0.06;
+	public static final double FIGHT_ENERGY = 0.02;
 	public static final double INJURED_ENERGY = 0.25;
 	public static final double METABOLISM_ENERGY = 0.004;
 	public static final double MAX_VISION_DISTANCE = 10;

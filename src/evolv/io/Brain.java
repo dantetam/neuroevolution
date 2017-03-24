@@ -3,7 +3,8 @@ package evolv.io;
 import java.util.List;
 
 public class Brain {
-	private static final int BRAIN_HEIGHT = 11 + Configuration.MEMORY_COUNT + 1;
+	public static final int NORMAL_FEATURES = 14;
+	private static final int BRAIN_HEIGHT = NORMAL_FEATURES + Configuration.MEMORY_COUNT + 1;
 	private static final String[] INPUT_LABELS = new String[BRAIN_HEIGHT];
 	private static final String[] OUTPUT_LABELS = new String[BRAIN_HEIGHT];
 
@@ -25,26 +26,33 @@ public class Brain {
 		INPUT_LABELS[8] = "2Bri";
 		INPUT_LABELS[9] = "Size";
 		INPUT_LABELS[10] = "MHue";
+		INPUT_LABELS[11] = "SoundIn";
+		INPUT_LABELS[12] = "Novel1";
+		INPUT_LABELS[13] = "Novel2";
+
 
 		// output
-		OUTPUT_LABELS[0] = "BHue";
-		OUTPUT_LABELS[1] = "Accel.";
+		OUTPUT_LABELS[0] = "BodyHue";
+		OUTPUT_LABELS[1] = "Accel";
 		OUTPUT_LABELS[2] = "Turn";
 		OUTPUT_LABELS[3] = "Eat";
 		OUTPUT_LABELS[4] = "Fight";
 		OUTPUT_LABELS[5] = "Birth";
-		OUTPUT_LABELS[6] = "How funny?";
-		OUTPUT_LABELS[7] = "How popular?";
-		OUTPUT_LABELS[8] = "How generous?";
-		OUTPUT_LABELS[9] = "How smart?";
-		OUTPUT_LABELS[10] = "MHue";
+		OUTPUT_LABELS[6] = "Mem1";
+		OUTPUT_LABELS[7] = "Mem2";
+		OUTPUT_LABELS[8] = "Mem3";
+		OUTPUT_LABELS[9] = "Mem4";
+		OUTPUT_LABELS[10] = "MouthHue";
+		OUTPUT_LABELS[11] = "SoundOut";
+		OUTPUT_LABELS[12] = "Novel1Out";
+		OUTPUT_LABELS[13] = "Novel2Out";
 
 		// TODO do we need a memory and const output?
 
 		// memory
 		for (int i = 0; i < Configuration.MEMORY_COUNT; i++) {
-			INPUT_LABELS[i + 11] = "Memory";
-			OUTPUT_LABELS[i + 11] = "Memory";
+			INPUT_LABELS[i + NORMAL_FEATURES] = "Memory";
+			OUTPUT_LABELS[i + NORMAL_FEATURES] = "Memory";
 		}
 
 		// TODO is this the bias?
@@ -160,7 +168,7 @@ public class Brain {
 			neurons[0][i] = inputs[i];
 		}
 		for (int i = 0; i < Configuration.MEMORY_COUNT; i++) {
-			neurons[0][11 + i] = neurons[end][11 + i];
+			neurons[0][NORMAL_FEATURES + i] = neurons[end][11 + i];
 		}
 		neurons[0][BRAIN_HEIGHT - 1] = 1;
 		for (int x = 1; x < Configuration.BRAIN_WIDTH; x++) {

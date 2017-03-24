@@ -78,4 +78,11 @@ public interface CreatureAction {
 			creature.rotate(amount, timeStep);
 		}
 	}
+	
+	public class CreateSound implements CreatureAction {
+		@Override
+		public void doAction(Creature creature, double amount, double timeStep) {
+			creature.setSound(amount);
+		}
+	}
 }

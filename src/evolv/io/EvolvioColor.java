@@ -2,6 +2,7 @@ package evolv.io;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.PrimitiveIterator.OfDouble;
 
 import processing.core.PApplet;
 import processing.core.PFont;
@@ -11,7 +12,8 @@ public class EvolvioColor extends PApplet {
 	private static final List<BoardAction> BOARD_ACTIONS = Arrays.asList(new BoardAction.ToggleUserControl(),
 			new BoardAction.ChangeCreatureMinimum(), new BoardAction.PrepareForFileSave(0),
 			new BoardAction.ChangeImageSaveInterval(), new BoardAction.PrepareForFileSave(2),
-			new BoardAction.ChangeTextSaveInterval(), new BoardAction.ChangePlaySpeed(), new BoardAction.ToggleRender());
+			new BoardAction.ChangeTextSaveInterval(), new BoardAction.ChangePlaySpeed(), 
+			new BoardAction.ToggleRender(), new BoardAction.ToggleRenderUI());
 
 	private final int seed = parseInt(random(1000000));
 	private Board evoBoard;
@@ -67,45 +69,52 @@ public class EvolvioColor extends PApplet {
 		for (int iteration = 0; iteration < evoBoard.getPlaySpeed(); iteration++) {
 			evoBoard.iterate(Configuration.TIME_STEP);
 		}
-		if (dist(prevMouseX, prevMouseY, mouseX, mouseY) > 5) {
-			draggedFar = true;
-		}
-		if (dragging == 1) {
-			cameraX -= toWorldXCoordinate(mouseX, mouseY) - toWorldXCoordinate(prevMouseX, prevMouseY);
-			cameraY -= toWorldYCoordinate(mouseX, mouseY) - toWorldYCoordinate(prevMouseX, prevMouseY);
-		} else if (dragging == 2) { // UGLY UGLY CODE. Do not look at this
-			if (evoBoard.setMinTemperature(1.0f - (mouseY - 30) / 660.0f)) {
-				dragging = 3;
+		if (evoBoard.isRender()) {
+			if (dist(prevMouseX, prevMouseY, mouseX, mouseY) > 5) {
+				draggedFar = true;
 			}
-		} else if (dragging == 3) {
-			if (evoBoard.setMaxTemperature(1.0f - (mouseY - 30) / 660.0f)) {
-				dragging = 2;
+			if (dragging == 1) {
+				cameraX -= toWorldXCoordinate(mouseX, mouseY) - toWorldXCoordinate(prevMouseX, prevMouseY);
+				cameraY -= toWorldYCoordinate(mouseX, mouseY) - toWorldYCoordinate(prevMouseX, prevMouseY);
+			} else if (dragging == 2) { // UGLY UGLY CODE. Do not look at this
+				if (evoBoard.setMinTemperature(1.0f - (mouseY - 30) / 660.0f)) {
+					dragging = 3;
+				}
+			} else if (dragging == 3) {
+				if (evoBoard.setMaxTemperature(1.0f - (mouseY - 30) / 660.0f)) {
+					dragging = 2;
+				}
 			}
+			if (evoBoard.getSelectedCreature() != null) {
+				cameraX = (float) evoBoard.getSelectedCreature().getPx();
+				cameraY = (float) evoBoard.getSelectedCreature().getPy();
+				cameraR = -PI / 2.0f - (float) evoBoard.getSelectedCreature().getRotation();
+			} else {
+				cameraR = 0;
+			}
+			pushMatrix();
+			scale(scaleFactor);
+			evoBoard.drawBlankBoard(Configuration.SCALE_TO_FIXBUG);
+			translate(Configuration.BOARD_WIDTH * 0.5f * Configuration.SCALE_TO_FIXBUG,
+					Configuration.BOARD_HEIGHT * 0.5f * Configuration.SCALE_TO_FIXBUG);
+			scale(zoom);
+			if (evoBoard.getSelectedCreature() != null) {
+				rotate(cameraR);
+			}
+			translate(-cameraX * Configuration.SCALE_TO_FIXBUG, -cameraY * Configuration.SCALE_TO_FIXBUG);
+			evoBoard.drawBoard(Configuration.SCALE_TO_FIXBUG, zoom, (int) toWorldXCoordinate(mouseX, mouseY),
+					(int) toWorldYCoordinate(mouseX, mouseY));
+			evoBoard.drawActors(Configuration.SCALE_TO_FIXBUG, zoom, (int) toWorldXCoordinate(mouseX, mouseY),
+					(int) toWorldYCoordinate(mouseX, mouseY));
+			popMatrix();
 		}
-		if (evoBoard.getSelectedCreature() != null) {
-			cameraX = (float) evoBoard.getSelectedCreature().getPx();
-			cameraY = (float) evoBoard.getSelectedCreature().getPy();
-			cameraR = -PI / 2.0f - (float) evoBoard.getSelectedCreature().getRotation();
-		} else {
-			cameraR = 0;
+		else {
+			background(0);
 		}
-		pushMatrix();
-		scale(scaleFactor);
-		evoBoard.drawBlankBoard(Configuration.SCALE_TO_FIXBUG);
-		translate(Configuration.BOARD_WIDTH * 0.5f * Configuration.SCALE_TO_FIXBUG,
-				Configuration.BOARD_HEIGHT * 0.5f * Configuration.SCALE_TO_FIXBUG);
-		scale(zoom);
-		if (evoBoard.getSelectedCreature() != null) {
-			rotate(cameraR);
-		}
-		translate(-cameraX * Configuration.SCALE_TO_FIXBUG, -cameraY * Configuration.SCALE_TO_FIXBUG);
-		evoBoard.drawBoard(Configuration.SCALE_TO_FIXBUG, zoom, (int) toWorldXCoordinate(mouseX, mouseY),
-				(int) toWorldYCoordinate(mouseX, mouseY));
-		popMatrix();
 		evoBoard.drawUI(Configuration.SCALE_TO_FIXBUG, zoom, Configuration.TIME_STEP, windowHeight, 0, windowWidth,
 				windowHeight);
 
-		evoBoard.fileSave();
+		//evoBoard.fileSave();
 		prevMouseX = mouseX;
 		prevMouseY = mouseY;
 	}
@@ -144,7 +153,7 @@ public class EvolvioColor extends PApplet {
 				float x = (mouseX - (windowHeight + 10));
 				float y = (mouseY - 570);
 				boolean clickedOnLeft = (x % 230 < 110);
-				if (x >= 0 && x < 460 && y >= 0 && y < 200 && x % 230 < 220 && y % 50 < 40) {
+				if (x >= 0 && x < 460 && y >= 0 && y < 300 && x % 230 < 220 && y % 50 < 40) {
 					// 460 = 2 * 230 and 200 = 4 * 50
 					int mX = (int) (x / 230);
 					int mY = (int) (y / 50);

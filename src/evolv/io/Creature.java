@@ -6,13 +6,13 @@ import java.util.List;
 
 public class Creature extends SoftBody {
 	private static final float CROSS_SIZE = 0.022f;
-	private static final double[] VISION_ANGLES = { 0, -0.4f, 0.4f };
-	private static final double[] VISION_DISTANCES = { 0, 0.7f, 0.7f };
+	private static final double[] VISION_ANGLES = { 0, 0, -0.6f, 0.6f };
+	private static final double[] VISION_DISTANCES = { 0, 1.5f, 1.0f, 1.0f };
 	private static final List<CreatureAction> CREATURE_ACTIONS = Arrays.asList(new CreatureAction.AdjustHue(),
 			new CreatureAction.Accelerate(), new CreatureAction.Rotate(), new CreatureAction.Eat(),
 			new CreatureAction.Fight(), new CreatureAction.Reproduce(), new CreatureAction.None(),
 			new CreatureAction.None(), new CreatureAction.None(), new CreatureAction.None(),
-			new CreatureAction.AdjustMouthHue());
+			new CreatureAction.AdjustMouthHue(), new CreatureAction.CreateSound());
 
 	private final EvolvioColor evolvioColor;
 
@@ -27,7 +27,8 @@ public class Creature extends SoftBody {
 	// Vision or View or Preference
 	private final double[] visionOccludedX = new double[VISION_ANGLES.length];
 	private final double[] visionOccludedY = new double[VISION_ANGLES.length];
-	private final double visionResults[] = new double[9];
+	private final double visionResults[] = new double[3*VISION_ANGLES.length];
+	private final double soundResults[] = new double[1];
 
 	private final Brain brain;
 
@@ -36,6 +37,7 @@ public class Creature extends SoftBody {
 	private double mouthHue;
 	private double vr;
 	private double rotation;
+	private double soundOut;
 
 	// TODO can the size of these constructors be reduced?
 
@@ -82,12 +84,15 @@ public class Creature extends SoftBody {
 	}
 
 	public void useBrain(double timeStep, boolean useOutput) {
-		double inputs[] = new double[11];
+		double inputs[] = new double[Brain.NORMAL_FEATURES];
 		for (int i = 0; i < 9; i++) {
 			inputs[i] = visionResults[i];
 		}
 		inputs[9] = getEnergy();
 		inputs[10] = mouthHue;
+		inputs[11] = soundResults[0];
+		inputs[12] = 0;
+		inputs[13] = 0;
 		brain.input(inputs);
 
 		if (useOutput) {
@@ -256,11 +261,17 @@ public class Creature extends SoftBody {
 			for (int i = 0; i < getColliders().size(); i++) {
 				SoftBody collider = getColliders().get(i);
 				if (collider.isCreature()) {
+					Creature enemy = (Creature) collider;
 					float distance = EvolvioColor.dist((float) getPx(), (float) getPy(), (float) collider.getPx(),
 							(float) collider.getPy());
 					double combinedRadius = getRadius() * Configuration.FIGHT_RANGE + collider.getRadius();
 					if (distance < combinedRadius) {
-						((Creature) collider).dropEnergy(getFightLevel() * Configuration.INJURED_ENERGY * timeStep);
+						double prevEnemyEnergy = enemy.getEnergy();
+						double fightEnergy = getFightLevel() * Configuration.INJURED_ENERGY * timeStep;
+						enemy.dropEnergy(fightEnergy);
+						if (fightEnergy > 0) {
+							addEnergy(fightEnergy * Configuration.KILL_ENERGY_MULTIPLIER);
+						}
 					}
 				}
 			}
@@ -345,6 +356,10 @@ public class Creature extends SoftBody {
 			}
 		}
 	}
+	
+	public void hear(double timeStep) {
+		
+	}
 
 	public int getColorAt(double x, double y) {
 		if (x >= 0 && x < Configuration.BOARD_WIDTH && y >= 0 && y < getBoard().getBoardHeight()) {
@@ -370,9 +385,9 @@ public class Creature extends SoftBody {
 	}
 
 	public void returnToEarth() {
-		int pieces = 20;
+		int pieces = Configuration.DEATH_PIECES;
 		for (int i = 0; i < pieces; i++) {
-			getRandomCoveredTile().addFood(getEnergy() / pieces, getHue(), true);
+			getRandomCoveredTile().addFood(getEnergy() / pieces * Configuration.DEATH_ENERGY_MULTIPLIER, getHue(), true);
 		}
 		for (int x = getSBIPMinX(); x <= getSBIPMaxX(); x++) {
 			for (int y = getSBIPMinY(); y <= getSBIPMaxY(); y++) {
@@ -545,5 +560,13 @@ public class Creature extends SoftBody {
 	public double getVisionEndY(int i) {
 		double visionTotalAngle = rotation + VISION_ANGLES[i];
 		return getPy() + VISION_DISTANCES[i] * Math.sin(visionTotalAngle);
+	}
+	
+	public double getSound() {
+		return this.soundOut;
+	}
+	
+	public void setSound(double sound) {
+		soundOut = sound;
 	}
 }

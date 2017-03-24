@@ -54,14 +54,14 @@ public class Board {
 	// Saving
 	private final int[] fileSaveCounts;
 	private final double[] fileSaveTimes;
-	private double imageSaveInterval = 1;
-	private double textSaveInterval = 1;
+	private double imageSaveInterval = 1000;
+	private double textSaveInterval = 1000;
 
 	// Misc or Unsorted
 	private final int backgroundColor;
 	private final int buttonColor;
 	private boolean userControl;
-	private boolean render = true;
+	private boolean render = true, renderUI = true;
 
 	public Board(EvolvioColor evolvioColor, int randomSeed) {
 		this.rockColor = evolvioColor.color(0, 0, 0.5f);
@@ -118,6 +118,12 @@ public class Board {
 				tiles[x][y].drawTile(scaleUp, camZoom, (mX == x && mY == y));
 			}
 		}
+	}
+	
+	public void drawActors(float scaleUp, float camZoom, int mX, int mY) {
+		if (!render) {
+			return;
+		}
 		for (int i = 0; i < rocks.size(); i++) {
 			rocks.get(i).drawSoftBody(scaleUp);
 		}
@@ -153,51 +159,57 @@ public class Board {
 		this.evolvioColor.text(seasons[(int) (getSeason() * 4)] + "\nSeed: " + randomSeed, seasonTextXCoor, 30);
 
 		if (selectedCreature == null) {
-			Collections.sort(creatures, CREATURE_COMPARATORS[sortMetric]);
-			Arrays.fill(list, null);
-			for (int i = 0; i < Configuration.LIST_SLOTS && i < creatures.size(); i++) {
-				list[i] = creatures.get(i);
-			}
-			double maxEnergy = 0;
-			for (int i = 0; i < Configuration.LIST_SLOTS; i++) {
-				if (list[i] != null && list[i].getEnergy() > maxEnergy) {
-					maxEnergy = list[i].getEnergy();
+			if (renderUI) {
+				Collections.sort(creatures, CREATURE_COMPARATORS[sortMetric]);
+				Arrays.fill(list, null);
+				for (int i = 0; i < Configuration.LIST_SLOTS && i < creatures.size(); i++) {
+					list[i] = creatures.get(i);
+				}
+				double maxEnergy = 0;
+				for (int i = 0; i < Configuration.LIST_SLOTS; i++) {
+					if (list[i] != null && list[i].getEnergy() > maxEnergy) {
+						maxEnergy = list[i].getEnergy();
+					}
+				}
+				for (int i = 0; i < Configuration.LIST_SLOTS; i++) {
+					if (list[i] != null) {
+						list[i].setPreferredRank(list[i].getPreferredRank() + ((i - list[i].getPreferredRank()) * 0.4f));
+						float y = y1 + 175 + 70 * list[i].getPreferredRank();
+						drawCreature(list[i], 45, y + 5, 2.3f, scaleUp);
+						this.evolvioColor.textSize(24);
+						this.evolvioColor.textAlign(EvolvioColor.LEFT);
+						this.evolvioColor.noStroke();
+						this.evolvioColor.fill(0.333f, 1, 0.4f);
+						float multi = (x2 - x1 - 200);
+						if (list[i].getEnergy() > 0) {
+							this.evolvioColor.rect(85, y + 5, (float) (multi * list[i].getEnergy() / maxEnergy), 25);
+						}
+						if (list[i].getEnergy() > 1) {
+							this.evolvioColor.fill(0.333f, 1, 0.8f);
+							this.evolvioColor.rect(85 + (float) (multi / maxEnergy), y + 5,
+									(float) (multi * (list[i].getEnergy() - 1) / maxEnergy), 25);
+						}
+						this.evolvioColor.fill(0, 0, 1);
+						this.evolvioColor.text(
+								list[i].getName() + " [" + list[i].getId() + "] (" + toAge(list[i].getAge()) + ")", 90, y);
+						this.evolvioColor.text("Energy: " + EvolvioColor.nf(100 * (float) (list[i].getEnergy()), 0, 2), 90,
+								y + 25);
+					}
 				}
 			}
-			for (int i = 0; i < Configuration.LIST_SLOTS; i++) {
-				if (list[i] != null) {
-					list[i].setPreferredRank(list[i].getPreferredRank() + ((i - list[i].getPreferredRank()) * 0.4f));
-					float y = y1 + 175 + 70 * list[i].getPreferredRank();
-					drawCreature(list[i], 45, y + 5, 2.3f, scaleUp);
-					this.evolvioColor.textSize(24);
-					this.evolvioColor.textAlign(EvolvioColor.LEFT);
-					this.evolvioColor.noStroke();
-					this.evolvioColor.fill(0.333f, 1, 0.4f);
-					float multi = (x2 - x1 - 200);
-					if (list[i].getEnergy() > 0) {
-						this.evolvioColor.rect(85, y + 5, (float) (multi * list[i].getEnergy() / maxEnergy), 25);
-					}
-					if (list[i].getEnergy() > 1) {
-						this.evolvioColor.fill(0.333f, 1, 0.8f);
-						this.evolvioColor.rect(85 + (float) (multi / maxEnergy), y + 5,
-								(float) (multi * (list[i].getEnergy() - 1) / maxEnergy), 25);
-					}
-					this.evolvioColor.fill(0, 0, 1);
-					this.evolvioColor.text(
-							list[i].getName() + " [" + list[i].getId() + "] (" + toAge(list[i].getAge()) + ")", 90, y);
-					this.evolvioColor.text("Energy: " + EvolvioColor.nf(100 * (float) (list[i].getEnergy()), 0, 2), 90,
-							y + 25);
-				}
-			}
-			this.evolvioColor.noStroke();
-			this.evolvioColor.fill(buttonColor);
-			this.evolvioColor.rect(10, 95, 220, 40);
-			this.evolvioColor.rect(240, 95, 220, 40);
-			this.evolvioColor.fill(0, 0, 1);
+			
 			this.evolvioColor.textAlign(EvolvioColor.CENTER);
-			this.evolvioColor.text("Reset zoom", 120, 123);
-			this.evolvioColor.text("Sort by: " + SORT_METRIC_NAMES[sortMetric], 350, 123);
-
+			
+			if (renderUI) {
+				this.evolvioColor.noStroke();
+				this.evolvioColor.fill(buttonColor);
+				this.evolvioColor.rect(10, 95, 220, 40);
+				this.evolvioColor.rect(240, 95, 220, 40);
+				this.evolvioColor.fill(0, 0, 1);
+				this.evolvioColor.text("Reset zoom", 120, 123);
+				this.evolvioColor.text("Sort by: " + SORT_METRIC_NAMES[sortMetric], 350, 123);
+			}
+			
 			this.evolvioColor.textSize(19);
 			/*
 			 * TODO put these button texts in the same place as the board
@@ -207,12 +219,12 @@ public class Board {
 					"-   Image every " + EvolvioColor.nf((float) imageSaveInterval, 0, 2) + " years   +",
 					"Text file now",
 					"-    Text every " + EvolvioColor.nf((float) textSaveInterval, 0, 2) + " years    +",
-					"-    Play Speed (" + playSpeed + "x)    +", "Toggle Rendering" };
+					"-    Play Speed (" + playSpeed + "x)    +", "Toggle Rendering", "Toggle Rendering UI" };
 			if (userControl) {
 				buttonTexts[0] = "Keyboard Control";
 			}
 
-			for (int i = 0; i < 8; i++) {
+			for (int i = 0; i < buttonTexts.length; i++) {
 				float x = (i % 2) * 230 + 10;
 				float y = EvolvioColor.floor(i / 2) * 50 + 570;
 				this.evolvioColor.fill(buttonColor);
@@ -233,7 +245,7 @@ public class Board {
 					this.evolvioColor.text(getNextFileName(i - 2), x + 110, y + 37);
 				}
 			}
-		} else {
+		} else if (selectedCreature != null) {
 			float energyUsage = (float) selectedCreature.getEnergyUsage(timeStep);
 			this.evolvioColor.noStroke();
 			if (energyUsage <= 0) {
@@ -283,20 +295,22 @@ public class Board {
 			selectedCreature.drawBrain(46, (int) apX, (int) apY);
 			this.evolvioColor.popMatrix();
 		}
-		drawPopulationGraph(x1, x2, y1, y2);
-		this.evolvioColor.fill(0, 0, 0);
-		this.evolvioColor.textAlign(EvolvioColor.RIGHT);
-		this.evolvioColor.textSize(24);
-		this.evolvioColor.text("Population: " + creatures.size(), x2 - x1 - 10, y2 - y1 - 10);
-		this.evolvioColor.popMatrix();
-
-		this.evolvioColor.pushMatrix();
-		this.evolvioColor.translate(x2, y1);
-		this.evolvioColor.textAlign(EvolvioColor.RIGHT);
-		this.evolvioColor.textSize(24);
-		this.evolvioColor.text("Temperature", -10, 24);
-		drawThermometer(-45, 30, 20, 660, temperature, Configuration.THERMOMETER_MINIMUM,
-				Configuration.THERMOMETER_MAXIMUM, this.evolvioColor.color(0, 1, 1));
+		if (renderUI) {
+			drawPopulationGraph(x1, x2, y1, y2);
+			this.evolvioColor.fill(0, 0, 0);
+			this.evolvioColor.textAlign(EvolvioColor.RIGHT);
+			this.evolvioColor.textSize(24);
+			this.evolvioColor.text("Population: " + creatures.size(), x2 - x1 - 10, y2 - y1 - 10);
+			this.evolvioColor.popMatrix();
+	
+			this.evolvioColor.pushMatrix();
+			this.evolvioColor.translate(x2, y1);
+			this.evolvioColor.textAlign(EvolvioColor.RIGHT);
+			this.evolvioColor.textSize(24);
+			this.evolvioColor.text("Temperature", -10, 24);
+			drawThermometer(-45, 30, 20, 660, temperature, Configuration.THERMOMETER_MINIMUM,
+					Configuration.THERMOMETER_MAXIMUM, this.evolvioColor.color(0, 1, 1));
+		}
 		this.evolvioColor.popMatrix();
 
 		if (selectedCreature != null) {
@@ -419,6 +433,7 @@ public class Board {
 		for (int i = 0; i < creatures.size(); i++) {
 			creatures.get(i).applyMotions(timeStep * Configuration.TIMESTEPS_PER_YEAR);
 			creatures.get(i).see(timeStep * Configuration.TIMESTEPS_PER_YEAR);
+			creatures.get(i).hear(timeStep * Configuration.TIMESTEPS_PER_YEAR);
 		}
 		if (Math.floor(fileSaveTimes[1] / imageSaveInterval) != Math.floor(year / imageSaveInterval)) {
 			prepareForFileSave(1);
@@ -711,5 +726,14 @@ public class Board {
 
 	public void setRender(boolean isRender) {
 		this.render = isRender;
+	}
+	
+	public boolean isRenderUI() {
+		return renderUI;
+	}
+	
+	public void setRenderUI(boolean isRenderUI) {
+		this.renderUI = isRenderUI;
+		System.out.println(isRenderUI);
 	}
 }
