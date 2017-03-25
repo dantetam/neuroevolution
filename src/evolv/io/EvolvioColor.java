@@ -13,7 +13,8 @@ public class EvolvioColor extends PApplet {
 			new BoardAction.ChangeCreatureMinimum(), new BoardAction.PrepareForFileSave(0),
 			new BoardAction.ChangeImageSaveInterval(), new BoardAction.PrepareForFileSave(2),
 			new BoardAction.ChangeTextSaveInterval(), new BoardAction.ChangePlaySpeed(), 
-			new BoardAction.ToggleRender(), new BoardAction.ToggleRenderUI());
+			new BoardAction.ToggleRender(), new BoardAction.ToggleRenderUI(),
+			new BoardAction.ToggleRenderDetails());
 
 	private final int seed = parseInt(random(1000000));
 	private Board evoBoard;
@@ -24,7 +25,9 @@ public class EvolvioColor extends PApplet {
 	private float cameraY = Configuration.BOARD_HEIGHT * 0.5f;
 	private float cameraR;
 	private float zoom = 1;
-
+	private int leftCornerX = 0, leftCornerY = Configuration.BOARD_WIDTH;
+	private int rightCornerX = 0, rightCornerY = Configuration.BOARD_HEIGHT;
+	
 	// 0 = no drag, 1 = drag screen, 2 and 3 are dragging temp extremes.
 	private int dragging;
 	private float prevMouseX;
@@ -105,7 +108,8 @@ public class EvolvioColor extends PApplet {
 			evoBoard.drawBoard(Configuration.SCALE_TO_FIXBUG, zoom, (int) toWorldXCoordinate(mouseX, mouseY),
 					(int) toWorldYCoordinate(mouseX, mouseY));
 			evoBoard.drawActors(Configuration.SCALE_TO_FIXBUG, zoom, (int) toWorldXCoordinate(mouseX, mouseY),
-					(int) toWorldYCoordinate(mouseX, mouseY));
+					(int) toWorldYCoordinate(mouseX, mouseY),
+					leftCornerX, leftCornerY, rightCornerX, rightCornerY);
 			popMatrix();
 		}
 		else {
@@ -224,6 +228,15 @@ public class EvolvioColor extends PApplet {
 		float grossY = grossify(y, Configuration.BOARD_HEIGHT);
 		cameraY -= (grossY / target - grossY / zoom);
 		zoom = target;
+		leftCornerX = (int)Math.floor(toWorldXCoordinate(0,0));
+		leftCornerY = (int)Math.floor(toWorldYCoordinate(0,0));
+		rightCornerX = (int)Math.floor(toWorldXCoordinate(windowWidth/2, windowWidth/2));
+		rightCornerY = (int)Math.floor(toWorldYCoordinate(windowWidth/2, windowWidth/2));
+		leftCornerX = Math.max(0, leftCornerX);
+		leftCornerY = Math.max(0, leftCornerY);
+		rightCornerX = Math.min(Configuration.BOARD_WIDTH, rightCornerX);
+		rightCornerY = Math.min(Configuration.BOARD_HEIGHT, rightCornerY);
+		//System.out.println(leftCornerX + " " + leftCornerY + ", " + rightCornerX + " " + rightCornerY);
 	}
 
 	public float grossify(float input, float total) { // Very weird function

@@ -12,7 +12,8 @@ public class Creature extends SoftBody {
 			new CreatureAction.Accelerate(), new CreatureAction.Rotate(), new CreatureAction.Eat(),
 			new CreatureAction.Fight(), new CreatureAction.Reproduce(), new CreatureAction.None(),
 			new CreatureAction.None(), new CreatureAction.None(), new CreatureAction.None(),
-			new CreatureAction.AdjustMouthHue(), new CreatureAction.CreateSound());
+			new CreatureAction.AdjustMouthHue(), new CreatureAction.CreateSound(), 
+			new CreatureAction.None(), new CreatureAction.None());
 
 	private final EvolvioColor evolvioColor;
 
@@ -243,13 +244,15 @@ public class Creature extends SoftBody {
 				foodToEat = coveredTile.getFoodLevel();
 			}
 			coveredTile.removeFood(foodToEat, true);
-			double foodDistance = Math.abs(coveredTile.getFoodType() - mouthHue);
+			//double foodDistance = Math.abs(coveredTile.getFoodType() - mouthHue);
+			/*double foodDistance = 0;
 			double multiplier = 1.0f - foodDistance / Configuration.FOOD_SENSITIVITY;
 			if (multiplier >= 0) {
 				addEnergy(foodToEat * multiplier);
 			} else {
 				loseEnergy(-foodToEat * multiplier);
-			}
+			}*/
+			addEnergy(foodToEat);
 			loseEnergy(attemptedAmount * Configuration.EAT_ENERGY * timeStep);
 		}
 	}
@@ -268,9 +271,10 @@ public class Creature extends SoftBody {
 					if (distance < combinedRadius) {
 						double prevEnemyEnergy = enemy.getEnergy();
 						double fightEnergy = getFightLevel() * Configuration.INJURED_ENERGY * timeStep;
-						enemy.dropEnergy(fightEnergy);
+						double sizeMultiplier = 1 + (getMass() - 100) * Configuration.SIZE_FIGHT_MULTIPLIER;
+						enemy.dropEnergy(fightEnergy * sizeMultiplier);
 						if (fightEnergy > 0) {
-							addEnergy(fightEnergy * Configuration.KILL_ENERGY_MULTIPLIER);
+							addEnergy(fightEnergy * Configuration.KILL_ENERGY_MULTIPLIER * sizeMultiplier);
 						}
 					}
 				}
@@ -358,7 +362,22 @@ public class Creature extends SoftBody {
 	}
 	
 	public void hear(double timeStep) {
-		
+		//List<Creature> nearbyCreatures = new ArrayList<Creature>();
+		float averageSound = 0;
+		for (int tileX = (int)getPx() - Configuration.HEARING_RANGE; tileX <= (int)getPx() + Configuration.HEARING_RANGE; tileX++) {
+			for (int tileY = (int)getPy() - Configuration.HEARING_RANGE; tileY <= (int)getPy() + Configuration.HEARING_RANGE; tileY++) {
+				
+				if (getBoard().inBounds(tileX, tileY)) {
+					List<Creature> creatures = getBoard().getCreaturesInPosition(tileX, tileY);
+					for (Creature creature: creatures) {
+						double sound = creature.getSound();
+						averageSound += sound;
+					}
+				}
+			}
+		}
+		float totalRangeHearing = (Configuration.HEARING_RANGE + 1) * (Configuration.HEARING_RANGE + 1);
+		soundResults[0] = Math.max(0, averageSound / totalRangeHearing);
 	}
 
 	public int getColorAt(double x, double y) {
@@ -494,6 +513,7 @@ public class Creature extends SoftBody {
 		super.applyMotions(timeStep);
 		rotation += vr;
 		vr *= Math.max(0, 1 - Configuration.FRICTION / getMass());
+		rotation %= 6.28f;
 	}
 
 	public Brain getBrain() {

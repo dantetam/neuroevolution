@@ -164,11 +164,11 @@ public class Brain {
 
 	public void input(double[] inputs) {
 		int end = Configuration.BRAIN_WIDTH - 1;
-		for (int i = 0; i < 11; i++) {
+		for (int i = 0; i < NORMAL_FEATURES; i++) {
 			neurons[0][i] = inputs[i];
 		}
 		for (int i = 0; i < Configuration.MEMORY_COUNT; i++) {
-			neurons[0][NORMAL_FEATURES + i] = neurons[end][11 + i];
+			neurons[0][NORMAL_FEATURES + i] = neurons[end][NORMAL_FEATURES + i];
 		}
 		neurons[0][BRAIN_HEIGHT - 1] = 1;
 		for (int x = 1; x < Configuration.BRAIN_WIDTH; x++) {
@@ -188,10 +188,11 @@ public class Brain {
 
 	public double[] outputs() {
 		int end = Configuration.BRAIN_WIDTH - 1;
-		double[] output = new double[11];
-		for (int i = 0; i < 11; i++) {
+		double[] output = new double[NORMAL_FEATURES];
+		for (int i = 0; i < NORMAL_FEATURES; i++) {
 			output[i] = neurons[end][i];
 		}
+		output[11] = Math.max(0, output[11]);
 		return output;
 	}
 

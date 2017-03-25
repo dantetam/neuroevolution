@@ -61,7 +61,7 @@ public class Board {
 	private final int backgroundColor;
 	private final int buttonColor;
 	private boolean userControl;
-	private boolean render = true, renderUI = true;
+	private boolean render = true, renderUI = true, renderDetails = true;
 
 	public Board(EvolvioColor evolvioColor, int randomSeed) {
 		this.rockColor = evolvioColor.color(0, 0, 0.5f);
@@ -120,7 +120,7 @@ public class Board {
 		}
 	}
 	
-	public void drawActors(float scaleUp, float camZoom, int mX, int mY) {
+	public void drawActors(float scaleUp, float camZoom, int mX, int mY, int leftCornerX, int leftCornerY, int rightCornerX, int rightCornerY) {
 		if (!render) {
 			return;
 		}
@@ -128,7 +128,10 @@ public class Board {
 			rocks.get(i).drawSoftBody(scaleUp);
 		}
 		for (int i = 0; i < creatures.size(); i++) {
-			creatures.get(i).drawSoftBody(scaleUp, camZoom, true);
+			Creature me = creatures.get(i);
+			//if (me.getSBIPMinX() > leftCornerX && me.getSBIPMaxX() < rightCornerX && me.getSBIPMinY() > leftCornerY && me.getSBIPMaxY() < rightCornerY) {
+				creatures.get(i).drawSoftBody(scaleUp, camZoom, true);
+			//}
 		}
 	}
 
@@ -527,6 +530,10 @@ public class Board {
 		return false;
 	}
 
+	public boolean inBounds(float x, float y) {
+		return x >= 0 && y >= 0 && x < this.getBoardWidth() && y < this.getBoardHeight();
+	}
+	
 	private float tempBounds(float temp) {
 		return EvolvioColor.min(EvolvioColor.max(temp, Configuration.THERMOMETER_MINIMUM),
 				Configuration.THERMOMETER_MAXIMUM);
@@ -573,6 +580,17 @@ public class Board {
 	public List<SoftBody> getSoftBodiesInPosition(int x, int y) {
 		return softBodiesInPositions[x][y];
 	}
+	
+	public List<Creature> getCreaturesInPosition(int x, int y) {
+		List<SoftBody> candidates = getSoftBodiesInPosition(x, y);
+		List<Creature> results = new ArrayList<>();
+		for (SoftBody softBody: candidates) {
+			if (softBody instanceof Creature) {
+				results.add((Creature) softBody);
+			}
+		}
+		return results;
+	}
 
 	public int getCreatureIdUpTo() {
 		return creatureIDUpTo;
@@ -595,6 +613,10 @@ public class Board {
 		return tiles[x][y];
 	}
 
+	public int getBoardWidth() {
+		return Configuration.BOARD_WIDTH;
+	}
+	
 	public int getBoardHeight() {
 		return Configuration.BOARD_HEIGHT;
 	}
@@ -735,5 +757,13 @@ public class Board {
 	public void setRenderUI(boolean isRenderUI) {
 		this.renderUI = isRenderUI;
 		System.out.println(isRenderUI);
+	}
+	
+	public boolean isRenderDetails() {
+		return renderDetails;
+	}
+	
+	public void setRenderDetails(boolean isRenderDetails) {
+		this.renderDetails = isRenderDetails;
 	}
 }

@@ -29,6 +29,13 @@ public interface BoardAction {
 			board.setRenderUI(!board.isRenderUI());
 		}
 	}
+	
+	public class ToggleRenderDetails implements BoardAction {
+		@Override
+		public void doAction(Board board, boolean isOnLeft) {
+			board.setRenderDetails(!board.isRenderDetails());
+		}
+	}
 
 	public class ChangeCreatureMinimum implements BoardAction {
 		@Override
