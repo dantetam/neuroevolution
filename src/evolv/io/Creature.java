@@ -380,6 +380,33 @@ public class Creature extends SoftBody {
 		soundResults[0] = Math.max(0, averageSound / totalRangeHearing);
 	}
 
+	//Calculate difference in genetic material by name edit distance
+	public void smell(double timeStep) {
+		float averageSmell = 0;
+		for (int tileX = (int)getPx() - Configuration.HEARING_RANGE; tileX <= (int)getPx() + Configuration.HEARING_RANGE; tileX++) {
+			for (int tileY = (int)getPy() - Configuration.HEARING_RANGE; tileY <= (int)getPy() + Configuration.HEARING_RANGE; tileY++) {
+				
+				if (getBoard().inBounds(tileX, tileY)) {
+					List<Creature> creatures = getBoard().getCreaturesInPosition(tileX, tileY);
+					for (Creature creature: creatures) {
+						String name = this.getName();
+						String otherName = creature.getName();
+						float distance = Util.editDistance(name, otherName);
+						//Distance is in range 0-maxlen(name, otherName)
+						//Invert this range so greater number <-> closer relation
+						//Convert range to [-1, 1], or possibly [0, 1]
+						float maxLen = (int)Math.max(name.length(), otherName.length());
+						
+						float contribution = (maxLen - distance) / maxLen;
+						contribution = contribution * 2 - 1;
+					}
+				}
+			}
+		}
+		float totalRangeHearing = (Configuration.HEARING_RANGE + 1) * (Configuration.HEARING_RANGE + 1);
+		smellResults[0] = Math.max(0, averageSmell / totalRangeHearing);
+	}
+	
 	public int getColorAt(double x, double y) {
 		if (x >= 0 && x < Configuration.BOARD_WIDTH && y >= 0 && y < getBoard().getBoardHeight()) {
 			return getBoard().getTile((int) (x), (int) (y)).getColor();

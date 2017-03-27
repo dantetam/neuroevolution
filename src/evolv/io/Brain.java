@@ -27,7 +27,7 @@ public class Brain {
 		INPUT_LABELS[9] = "Size";
 		INPUT_LABELS[10] = "MHue";
 		INPUT_LABELS[11] = "SoundIn";
-		INPUT_LABELS[12] = "Novel1";
+		INPUT_LABELS[12] = "SmellIn";
 		INPUT_LABELS[13] = "Novel2";
 
 

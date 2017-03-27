@@ -14,7 +14,9 @@ public class EvolvioColor extends PApplet {
 			new BoardAction.ChangeImageSaveInterval(), new BoardAction.PrepareForFileSave(2),
 			new BoardAction.ChangeTextSaveInterval(), new BoardAction.ChangePlaySpeed(), 
 			new BoardAction.ToggleRender(), new BoardAction.ToggleRenderUI(),
-			new BoardAction.ToggleRenderDetails());
+			new BoardAction.ToggleRenderDetails(), new BoardAction.None(),
+			new BoardAction.None(), new BoardAction.None(),
+			new BoardAction.None(), new BoardAction.None());
 
 	private final int seed = parseInt(random(1000000));
 	private Board evoBoard;
