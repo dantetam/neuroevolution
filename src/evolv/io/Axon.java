@@ -24,6 +24,10 @@ public class Axon {
 		return weight;
 	}
 
+	public double getMutationRate() {
+		return mutationRate;
+	}
+	
 	private double random() {
 		return Math.pow(pmRan(), Configuration.MUTATE_POWER);
 	}

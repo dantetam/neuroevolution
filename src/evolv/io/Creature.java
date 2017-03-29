@@ -4,15 +4,20 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import javax.swing.LookAndFeel;
+
 public class Creature extends SoftBody {
 	private static final float CROSS_SIZE = 0.022f;
 	private static final double[] VISION_ANGLES = { 0, 0, -0.6f, 0.6f };
 	private static final double[] VISION_DISTANCES = { 0, 1.5f, 1.0f, 1.0f };
-	private static final List<CreatureAction> CREATURE_ACTIONS = Arrays.asList(new CreatureAction.AdjustHue(),
+	private static final List<CreatureAction> CREATURE_ACTIONS = Arrays.asList(new CreatureAction.AdjustHue(), //TODO: Change to adjustHue, this action uses energy
 			new CreatureAction.Accelerate(), new CreatureAction.Rotate(), new CreatureAction.Eat(),
 			new CreatureAction.Fight(), new CreatureAction.Reproduce(), new CreatureAction.None(),
 			new CreatureAction.None(), new CreatureAction.None(), new CreatureAction.None(),
 			new CreatureAction.AdjustMouthHue(), new CreatureAction.CreateSound(), 
+			new CreatureAction.None(), new CreatureAction.None(),
+			new CreatureAction.None(), new CreatureAction.None(),
+			new CreatureAction.None(), new CreatureAction.None(),
 			new CreatureAction.None(), new CreatureAction.None());
 
 	private final EvolvioColor evolvioColor;
@@ -30,7 +35,7 @@ public class Creature extends SoftBody {
 	private final double[] visionOccludedY = new double[VISION_ANGLES.length];
 	private final double visionResults[] = new double[3*VISION_ANGLES.length];
 	private final double soundResults[] = new double[1];
-
+	private final double smellResults[] = new double[1];
 	private final Brain brain;
 
 	// Misc or Unsorted
@@ -40,19 +45,24 @@ public class Creature extends SoftBody {
 	private double rotation;
 	private double soundOut;
 
+	private boolean isCarnivore;
+	
 	// TODO can the size of these constructors be reduced?
 
 	public Creature(EvolvioColor evolvioColor, Board board) {
+		//boolean isCarnivore = Math.random() < 0.75 ? false : true;
+		//TODO:
+		Spawn on land tiles only, if there are land tiles
 		this(evolvioColor, board, evolvioColor.random(0, Configuration.BOARD_WIDTH),
-				evolvioColor.random(0, board.getBoardHeight()), 0, 0,
+				evolvioColor.random(0, Configuration.BOARD_HEIGHT), 0, 0,
 				evolvioColor.random(Configuration.MINIMUM_CREATURE_ENERGY, Configuration.MAXIMUM_CREATURE_ENERGY), 1,
 				evolvioColor.random(0, 1), 1, 1, evolvioColor.random(0, 2 * EvolvioColor.PI), 0, "", "[PRIMORDIAL]",
-				true, null, 1, evolvioColor.random(0, 1));
+				true, null, 1, evolvioColor.random(0, 1), Math.random() < 0.75 ? false : true);
 	}
 
 	public Creature(EvolvioColor evolvioColor, Board board, double tpx, double tpy, double tvx, double tvy,
 			double tenergy, double tdensity, double thue, double tsaturation, double tbrightness, double rot,
-			double tvr, String tname, String tparents, boolean mutateName, Brain brain, int tgen, double tmouthHue) {
+			double tvr, String tname, String tparents, boolean mutateName, Brain brain, int tgen, double tmouthHue, boolean isCarnivore) {
 		super(evolvioColor, board, tpx, tpy, tvx, tvy, tenergy, tdensity, thue, tsaturation, tbrightness, true);
 		this.evolvioColor = evolvioColor;
 
@@ -68,6 +78,7 @@ public class Creature extends SoftBody {
 		board.incrementCreatureIdUpTo();
 		this.gen = tgen;
 		this.mouthHue = tmouthHue;
+		this.isCarnivore = isCarnivore;
 	}
 
 	private String createName(String tname, boolean mutateName) {
@@ -86,14 +97,15 @@ public class Creature extends SoftBody {
 
 	public void useBrain(double timeStep, boolean useOutput) {
 		double inputs[] = new double[Brain.NORMAL_FEATURES];
-		for (int i = 0; i < 9; i++) {
+		for (int i = 0; i < 12; i++) {
 			inputs[i] = visionResults[i];
 		}
-		inputs[9] = getEnergy();
-		inputs[10] = mouthHue;
-		inputs[11] = soundResults[0];
-		inputs[12] = 0;
-		inputs[13] = 0;
+		inputs[12] = getEnergy();
+		//inputs[13] = mouthHue;
+		inputs[14] = soundResults[0];
+		inputs[15] = smellResults[0];
+		//inputs[16] = getPx();
+		//inputs[17] = getPy();
 		brain.input(inputs);
 
 		if (useOutput) {
@@ -182,7 +194,8 @@ public class Creature extends SoftBody {
 		this.evolvioColor.strokeWeight((float) (Configuration.CREATURE_STROKE_WEIGHT / radius));
 		this.evolvioColor.stroke(0, 0, 0);
 		this.evolvioColor.fill((float) mouthHue, 1.0f, 1.0f);
-		this.evolvioColor.ellipse(0.6f * scaleUp, 0, 0.37f * scaleUp, 0.37f * scaleUp);
+		if (scaleUp > 0)
+			this.evolvioColor.ellipse(0.6f * scaleUp, 0, 0.37f * scaleUp, 0.37f * scaleUp);
 		this.evolvioColor.popMatrix();
 	}
 
@@ -480,6 +493,7 @@ public class Creature extends SoftBody {
 				int parentsTotal = parents.size();
 				String[] parentNames = new String[parentsTotal];
 				Brain newBrain = brain.evolve(parents);
+				float carnivoreCount = 0;
 				for (int i = 0; i < parentsTotal; i++) {
 					int chosenIndex = (int) this.evolvioColor.random(0, parents.size());
 					Creature parent = parents.get(chosenIndex);
@@ -495,13 +509,16 @@ public class Creature extends SoftBody {
 					if (parent.gen > highestGen) {
 						highestGen = parent.gen;
 					}
+					carnivoreCount += parent.isCarnivore() ? 1 : 0;
 				}
+				float carnivoreChance = carnivoreCount / (float) parentsTotal + (float) Math.random() * 0.1f;
+				boolean newCarnivore = Math.random() < carnivoreChance;
 				newSaturation = 1;
 				newBrightness = 1;
 				getBoard().addCreature(new Creature(this.evolvioColor, getBoard(), newPX, newPY, 0, 0, babySize,
 						getDensity(), newHue, newSaturation, newBrightness,
 						this.evolvioColor.random(0, 2 * EvolvioColor.PI), 0, stitchName(parentNames),
-						andifyParents(parentNames), true, newBrain, highestGen + 1, newMouthHue));
+						andifyParents(parentNames), true, newBrain, highestGen + 1, newMouthHue, newCarnivore));
 			}
 		}
 	}
@@ -532,6 +549,13 @@ public class Creature extends SoftBody {
 		return name;
 	}
 
+	//TODO:
+	/*
+	public String[] getCreatureInfo() {
+		String[] data = new String[2]
+	}
+	*/
+	
 	@Override
 	public void applyMotions(double timeStep) {
 		if (getRandomCoveredTile().isWater()) {
@@ -599,6 +623,10 @@ public class Creature extends SoftBody {
 		mouthHue = Math.min(Math.max(set, 0), 1);
 	}
 
+	public boolean isCarnivore() {
+		return isCarnivore;
+	}
+	
 	public double getVisionEndX(int i) {
 		double visionTotalAngle = rotation + VISION_ANGLES[i];
 		return getPx() + VISION_DISTANCES[i] * Math.cos(visionTotalAngle);

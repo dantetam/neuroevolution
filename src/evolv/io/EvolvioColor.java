@@ -18,7 +18,7 @@ public class EvolvioColor extends PApplet {
 			new BoardAction.None(), new BoardAction.None(),
 			new BoardAction.None(), new BoardAction.None());
 
-	private final int seed = parseInt(random(1000000));
+	private final int seed = parseInt(random(1000000)); //TODO: 440594
 	private Board evoBoard;
 	private float scaleFactor;
 	private int windowWidth;
@@ -103,9 +103,9 @@ public class EvolvioColor extends PApplet {
 			translate(Configuration.BOARD_WIDTH * 0.5f * Configuration.SCALE_TO_FIXBUG,
 					Configuration.BOARD_HEIGHT * 0.5f * Configuration.SCALE_TO_FIXBUG);
 			scale(zoom);
-			if (evoBoard.getSelectedCreature() != null) {
+			/*if (evoBoard.getSelectedCreature() != null) {
 				rotate(cameraR);
-			}
+			}*/
 			translate(-cameraX * Configuration.SCALE_TO_FIXBUG, -cameraY * Configuration.SCALE_TO_FIXBUG);
 			evoBoard.drawBoard(Configuration.SCALE_TO_FIXBUG, zoom, (int) toWorldXCoordinate(mouseX, mouseY),
 					(int) toWorldYCoordinate(mouseX, mouseY));

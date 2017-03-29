@@ -46,6 +46,23 @@ public class CreatureComparators {
 		}
 	}
 
+	public static class SizeCarnivoreComparator extends BaseComparator {
+		public SizeCarnivoreComparator(SortOrder sortOrder) {
+			super(sortOrder);
+		}
+
+		@Override
+		public int getComparison(Creature creature1, Creature creature2) {
+			if (creature1.isCarnivore() && !(creature2.isCarnivore())) {
+				return 1;
+			}
+			else if (creature2.isCarnivore() && !(creature1.isCarnivore())) {
+				return -1;
+			}
+			return (int) Math.signum(creature1.getEnergy() - creature2.getEnergy());
+		}
+	}
+	
 	public static class AgeComparator extends BaseComparator {
 		public AgeComparator(SortOrder sortOrder) {
 			super(sortOrder);

@@ -8,11 +8,14 @@ import java.util.List;
 
 import javax.swing.SortOrder;
 
+import evolv.io.CreatureComparators.SizeCarnivoreComparator;
+
 public class Board {
-	private static final String[] SORT_METRIC_NAMES = { "Biggest", "Smallest", "Youngest", "Oldest", "A to Z", "Z to A",
+	private static final String[] SORT_METRIC_NAMES = { "Biggest", "Biggest Carnivores", "Smallest", "Youngest", "Oldest", "A to Z", "Z to A",
 			"Highest Gen", "Lowest Gen" };
 	private static final Comparator<Creature>[] CREATURE_COMPARATORS = new Comparator[] {
 			new CreatureComparators.SizeComparator(SortOrder.DESCENDING),
+			new CreatureComparators.SizeCarnivoreComparator(SortOrder.DESCENDING),
 			new CreatureComparators.SizeComparator(SortOrder.ASCENDING),
 			new CreatureComparators.AgeComparator(SortOrder.DESCENDING),
 			new CreatureComparators.AgeComparator(SortOrder.ASCENDING),
@@ -73,7 +76,13 @@ public class Board {
 		this.evolvioColor.randomSeed(randomSeed);
 		for (int x = 0; x < Configuration.BOARD_WIDTH; x++) {
 			for (int y = 0; y < Configuration.BOARD_HEIGHT; y++) {
-				float bigForce = EvolvioColor.pow(((float) y) / Configuration.BOARD_HEIGHT, 0.5f);
+				float bigForce;
+				if (Configuration.NOISE_IN_NORTH) {
+					bigForce = EvolvioColor.pow(((float) y) / Configuration.BOARD_HEIGHT, 0.5f);
+				}
+				else {
+					bigForce = EvolvioColor.pow(0.75f, 0.5f);
+				}
 				float fertility = this.evolvioColor.noise(x * Configuration.NOISE_STEP_SIZE * 3,
 						y * Configuration.NOISE_STEP_SIZE * 3) * (1 - bigForce) * 5.0f
 						+ this.evolvioColor.noise(x * Configuration.NOISE_STEP_SIZE * 0.5f,
@@ -166,7 +175,12 @@ public class Board {
 				Collections.sort(creatures, CREATURE_COMPARATORS[sortMetric]);
 				Arrays.fill(list, null);
 				for (int i = 0; i < Configuration.LIST_SLOTS && i < creatures.size(); i++) {
-					list[i] = creatures.get(i);
+					if (CREATURE_COMPARATORS[sortMetric] instanceof SizeCarnivoreComparator) {
+						if (creatures.get(i).isCarnivore())
+							list[i] = creatures.get(i);
+					}
+					else 
+						list[i] = creatures.get(i);
 				}
 				double maxEnergy = 0;
 				for (int i = 0; i < Configuration.LIST_SLOTS; i++) {
@@ -283,6 +297,7 @@ public class Board {
 					255);
 			this.evolvioColor.text("Mouth hue: " + EvolvioColor.nf((float) (selectedCreature.getMouthHue()), 0, 2), 10,
 					575, 210, 255);
+			this.evolvioColor.text("Carnivorous: " + selectedCreature.isCarnivore(), 10, 600, 210, 255);
 
 			if (userControl) {
 				this.evolvioColor.text(
@@ -437,6 +452,7 @@ public class Board {
 			creatures.get(i).applyMotions(timeStep * Configuration.TIMESTEPS_PER_YEAR);
 			creatures.get(i).see(timeStep * Configuration.TIMESTEPS_PER_YEAR);
 			creatures.get(i).hear(timeStep * Configuration.TIMESTEPS_PER_YEAR);
+			//creatures.get(i).smell(timeStep * Configuration.TIMESTEPS_PER_YEAR);
 		}
 		if (Math.floor(fileSaveTimes[1] / imageSaveInterval) != Math.floor(year / imageSaveInterval)) {
 			prepareForFileSave(1);

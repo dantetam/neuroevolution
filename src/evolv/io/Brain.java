@@ -3,7 +3,7 @@ package evolv.io;
 import java.util.List;
 
 public class Brain {
-	public static final int NORMAL_FEATURES = 14;
+	public static final int NORMAL_FEATURES = 18;
 	private static final int BRAIN_HEIGHT = NORMAL_FEATURES + Configuration.MEMORY_COUNT + 1;
 	private static final String[] INPUT_LABELS = new String[BRAIN_HEIGHT];
 	private static final String[] OUTPUT_LABELS = new String[BRAIN_HEIGHT];
@@ -24,11 +24,15 @@ public class Brain {
 		INPUT_LABELS[6] = "2Hue";
 		INPUT_LABELS[7] = "2Sat";
 		INPUT_LABELS[8] = "2Bri";
-		INPUT_LABELS[9] = "Size";
-		INPUT_LABELS[10] = "MHue";
-		INPUT_LABELS[11] = "SoundIn";
-		INPUT_LABELS[12] = "SmellIn";
-		INPUT_LABELS[13] = "Novel2";
+		INPUT_LABELS[9] = "3Hue";
+		INPUT_LABELS[10] = "3Sat";
+		INPUT_LABELS[11] = "3Bri";
+		INPUT_LABELS[12] = "Size";
+		INPUT_LABELS[13] = "MHue";
+		INPUT_LABELS[14] = "SoundIn";
+		INPUT_LABELS[15] = "SmellIn";
+		INPUT_LABELS[16] = "X";
+		INPUT_LABELS[17] = "Y";
 
 
 		// output
@@ -46,6 +50,10 @@ public class Brain {
 		OUTPUT_LABELS[11] = "SoundOut";
 		OUTPUT_LABELS[12] = "Novel1Out";
 		OUTPUT_LABELS[13] = "Novel2Out";
+		OUTPUT_LABELS[14] = "Novel3Out";
+		OUTPUT_LABELS[15] = "Novel4Out";
+		OUTPUT_LABELS[16] = "Novel5Out";
+		OUTPUT_LABELS[17] = "Novel6Out";
 
 		// TODO do we need a memory and const output?
 
@@ -117,6 +125,60 @@ public class Brain {
 		}
 		return new Brain(this.evolvioColor, newBrain, newNeurons);
 	}
+	
+	//Ideally a string that encodes brain structure (decide which features to choose from global set of features)
+	//as well as strength and existence of connections (axons vs dendroids?)
+	public String[] getBrainRepresentation() {
+		int axonDataLen = axons.length * axons[0].length * axons[0][0].length;
+		int neuronDataLen = neurons.length * neurons[0].length;
+		String[] result = new String[axonDataLen + neuronDataLen + 2];
+		
+		result[0] = axons.length + " " + axons[0].length + " " + axons[0][0].length;
+		int index = 2;
+		for (int x = 0; x < axons.length; x++) {
+			for (int y = 0; y < axons[0].length; y++) {
+				for (int z = 0; z < axons[0][0].length; z++) {
+					Axon axon = axons[x][y][z];
+					result[index] = x + " " + y + " " + z + " " + axon.getWeight() + " " + axon.getMutationRate();
+					index++;
+				}
+			}
+		}
+		
+		result[1] = neurons.length + " " + neurons[0].length;
+		for (int x = 0; x < neurons.length; x++) {
+			for (int y = 0; y < neurons[0].length; y++) {
+				result[index] = x + " " + y + " " + neurons[x][y];
+				index++;
+			}
+		}
+		
+		return result;
+	}
+	
+	//TODO: 
+	public static Brain loadBrainFromString(EvolvioColor evolvioColor, String[] data) {
+		Axon[][][] axons = new Axon[Configuration.BRAIN_WIDTH - 1][BRAIN_HEIGHT][BRAIN_HEIGHT - 1];
+		double[][] neurons = new double[Configuration.BRAIN_WIDTH][BRAIN_HEIGHT];
+		for (int x = 0; x < Configuration.BRAIN_WIDTH - 1; x++) {
+			for (int y = 0; y < BRAIN_HEIGHT; y++) {
+				for (int z = 0; z < BRAIN_HEIGHT - 1; z++) {
+					double startingWeight = (Math.random() * 2 - 1) * Configuration.STARTING_AXON_VARIABILITY;
+					axons[x][y][z] = new Axon(startingWeight, Configuration.AXON_START_MUTABILITY);
+				}
+			}
+		}
+		for (int x = 0; x < Configuration.BRAIN_WIDTH; x++) {
+			for (int y = 0; y < BRAIN_HEIGHT; y++) {
+				if (y == BRAIN_HEIGHT - 1) {
+					neurons[x][y] = 1;
+				} else {
+					neurons[x][y] = 0;
+				}
+			}
+		}
+		return new Brain(evolvioColor, axons, neurons);
+	}
 
 	public void draw(float scaleUp, int mX, int mY) {
 		final float neuronSize = 0.4f;
@@ -178,6 +240,9 @@ public class Brain {
 					total += neurons[x - 1][input] * axons[x - 1][input][y].getWeight();
 				}
 				if (x == Configuration.BRAIN_WIDTH - 1) {
+					if (Math.abs(total) > 10) {
+						total = Math.signum(total) * 10;
+					}
 					neurons[x][y] = total;
 				} else {
 					neurons[x][y] = sigmoid(total);
@@ -190,7 +255,12 @@ public class Brain {
 		int end = Configuration.BRAIN_WIDTH - 1;
 		double[] output = new double[NORMAL_FEATURES];
 		for (int i = 0; i < NORMAL_FEATURES; i++) {
-			output[i] = neurons[end][i];
+			if (Math.abs(neurons[end][i]) > 10) {
+				output[i] = Math.signum(neurons[end][i]) * 10;
+			}
+			else {
+				output[i] = neurons[end][i];
+			}
 		}
 		output[11] = Math.max(0, output[11]);
 		return output;

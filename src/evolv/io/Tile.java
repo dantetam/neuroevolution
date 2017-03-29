@@ -1,5 +1,7 @@
 package evolv.io;
 
+import java.time.Year;
+
 public class Tile {
 	private final EvolvioColor evolvioColor;
 	private final Board board;
@@ -79,6 +81,11 @@ public class Tile {
 		double updateTime = board.getYear();
 		if (Math.abs(lastUpdateTime - updateTime) >= 0.00001f) {
 			double growthChange = board.getGrowthOverTimeRange(lastUpdateTime, updateTime);
+			if (Configuration.FOOD_SHIFT_LATITUDE) {
+				double distSummer = Math.abs(board.getYear() % 1.0 - 0.5);
+				double distEquator = Math.sin( (posY - board.getBoardHeight()) / (board.getBoardHeight()) ); //use equator? *0.5
+				growthChange += distSummer * distEquator;
+			}
 			if (isWater()) {
 				foodLevel = 0;
 			} else {

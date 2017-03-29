@@ -10,8 +10,11 @@ public class Configuration {
 	public static final float MINIMUM_TEMPERATURE = -0.5f;
 	public static final float MAXIMUM_TEMPERATURE = 1.0f;
 	public static final int ROCKS_TO_ADD = 0;
-	public static final int CREATURE_MINIMUM = 50;
+	public static final int CREATURE_MINIMUM = 40;
 	public static final String INITIAL_FILE_NAME = "PIC";
+	
+	public static final boolean NOISE_IN_NORTH = false;
+	public static final boolean FOOD_SHIFT_LATITUDE = true;
 
 	// Board
 	public static final float MINIMUM_CREATURE_ENERGY = 1.2f;
@@ -40,7 +43,7 @@ public class Configuration {
 
 	// Brain
 	public static final int MEMORY_COUNT = 1;
-	public static final int BRAIN_WIDTH = 3;
+	public static final int BRAIN_WIDTH = 4;
 	/*
 	 * Would like to add Brain Height. Will need to rework Brain to allow for
 	 * configuration
@@ -60,7 +63,7 @@ public class Configuration {
 	public static final double ACCELERATION_ENERGY = 0.08;
 	public static final double ACCELERATION_BACKWARDS_ENERGY = 0.1;
 	public static final double SWIM_ENERGY = 0.008;
-	public static final double TURN_ENERGY = 0.12; //0.12
+	public static final double TURN_ENERGY = 0.05; //0.12
 	public static final double EAT_ENERGY = 0.07; //0.05
 	public static final double EAT_SPEED = 0.5;
 	public static final double EAT_WHILE_MOVING_INEFFICIENCY_MULTIPLIER = 1.0;
@@ -85,6 +88,6 @@ public class Configuration {
 	public static final float FIGHT_RANGE = 2.0f;
 
 	// Tile
-	public static final float FOOD_GROWTH_RATE = 1.25f;
+	public static final float FOOD_GROWTH_RATE = 0.5f; //1.25f
 	public static final float MAX_GROWTH_LEVEL = 3.0f;
 }
