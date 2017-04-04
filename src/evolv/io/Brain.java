@@ -240,8 +240,10 @@ public class Brain {
 					total += neurons[x - 1][input] * axons[x - 1][input][y].getWeight();
 				}
 				if (x == Configuration.BRAIN_WIDTH - 1) {
-					if (Math.abs(total) > 10) {
-						total = Math.signum(total) * 10;
+					if (y < NORMAL_FEATURES) {
+						if (Math.abs(total) > 10) {
+							total = Math.signum(total) * 10;
+						}
 					}
 					neurons[x][y] = total;
 				} else {

@@ -1,5 +1,6 @@
 package evolv.io;
 
+import java.awt.print.Printable;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -10,7 +11,7 @@ public class Creature extends SoftBody {
 	private static final float CROSS_SIZE = 0.022f;
 	private static final double[] VISION_ANGLES = { 0, 0, -0.6f, 0.6f };
 	private static final double[] VISION_DISTANCES = { 0, 1.5f, 1.0f, 1.0f };
-	private static final List<CreatureAction> CREATURE_ACTIONS = Arrays.asList(new CreatureAction.AdjustHue(), //TODO: Change to adjustHue, this action uses energy
+	private static final List<CreatureAction> CREATURE_ACTIONS = Arrays.asList(new CreatureAction.None(), //TODO: Change to adjustHue, this action uses energy
 			new CreatureAction.Accelerate(), new CreatureAction.Rotate(), new CreatureAction.Eat(),
 			new CreatureAction.Fight(), new CreatureAction.Reproduce(), new CreatureAction.None(),
 			new CreatureAction.None(), new CreatureAction.None(), new CreatureAction.None(),
@@ -52,7 +53,7 @@ public class Creature extends SoftBody {
 	public Creature(EvolvioColor evolvioColor, Board board) {
 		//boolean isCarnivore = Math.random() < 0.75 ? false : true;
 		//TODO:
-		Spawn on land tiles only, if there are land tiles
+		//Spawn on land tiles only, if there are land tiles
 		this(evolvioColor, board, evolvioColor.random(0, Configuration.BOARD_WIDTH),
 				evolvioColor.random(0, Configuration.BOARD_HEIGHT), 0, 0,
 				evolvioColor.random(Configuration.MINIMUM_CREATURE_ENERGY, Configuration.MAXIMUM_CREATURE_ENERGY), 1,
@@ -398,7 +399,6 @@ public class Creature extends SoftBody {
 		float averageSmell = 0;
 		for (int tileX = (int)getPx() - Configuration.HEARING_RANGE; tileX <= (int)getPx() + Configuration.HEARING_RANGE; tileX++) {
 			for (int tileY = (int)getPy() - Configuration.HEARING_RANGE; tileY <= (int)getPy() + Configuration.HEARING_RANGE; tileY++) {
-				
 				if (getBoard().inBounds(tileX, tileY)) {
 					List<Creature> creatures = getBoard().getCreaturesInPosition(tileX, tileY);
 					for (Creature creature: creatures) {
@@ -408,15 +408,17 @@ public class Creature extends SoftBody {
 						//Distance is in range 0-maxlen(name, otherName)
 						//Invert this range so greater number <-> closer relation
 						//Convert range to [-1, 1], or possibly [0, 1]
-						float maxLen = (int)Math.max(name.length(), otherName.length());
+						float maxLen = (float) Math.max(name.length(), otherName.length());
 						
 						float contribution = (maxLen - distance) / maxLen;
-						contribution = contribution * 2 - 1;
+						//contribution = contribution * 2 - 1;
+						averageSmell += contribution;
 					}
 				}
 			}
 		}
-		float totalRangeHearing = (Configuration.HEARING_RANGE + 1) * (Configuration.HEARING_RANGE + 1);
+		//System.out.println();
+		float totalRangeHearing = (2 * Configuration.HEARING_RANGE + 1) * (2 * Configuration.HEARING_RANGE + 1);
 		smellResults[0] = Math.max(0, averageSmell / totalRangeHearing);
 	}
 	

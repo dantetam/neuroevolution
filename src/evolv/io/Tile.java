@@ -87,7 +87,9 @@ public class Tile {
 				growthChange += distSummer * distEquator;
 			}
 			if (isWater()) {
-				foodLevel = 0;
+				if (growthChange > 0) {
+					growthChange *= 0.25;
+				}
 			} else {
 				if (growthChange > 0) {
 					// Food is growing. Exponentially approach maxGrowthLevel.

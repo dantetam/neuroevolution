@@ -314,7 +314,7 @@ public class Board {
 			this.evolvioColor.popMatrix();
 		}
 		if (renderUI) {
-			drawPopulationGraph(x1, x2, y1, y2);
+			//drawPopulationGraph(x1, x2, y1, y2);
 			this.evolvioColor.fill(0, 0, 0);
 			this.evolvioColor.textAlign(EvolvioColor.RIGHT);
 			this.evolvioColor.textSize(24);
@@ -452,7 +452,7 @@ public class Board {
 			creatures.get(i).applyMotions(timeStep * Configuration.TIMESTEPS_PER_YEAR);
 			creatures.get(i).see(timeStep * Configuration.TIMESTEPS_PER_YEAR);
 			creatures.get(i).hear(timeStep * Configuration.TIMESTEPS_PER_YEAR);
-			//creatures.get(i).smell(timeStep * Configuration.TIMESTEPS_PER_YEAR);
+			creatures.get(i).smell(timeStep * Configuration.TIMESTEPS_PER_YEAR);
 		}
 		if (Math.floor(fileSaveTimes[1] / imageSaveInterval) != Math.floor(year / imageSaveInterval)) {
 			prepareForFileSave(1);

@@ -62,7 +62,7 @@ public class Configuration {
 	// Creature
 	public static final double ACCELERATION_ENERGY = 0.08;
 	public static final double ACCELERATION_BACKWARDS_ENERGY = 0.1;
-	public static final double SWIM_ENERGY = 0.008;
+	public static final double SWIM_ENERGY = 0.0; //0.008
 	public static final double TURN_ENERGY = 0.05; //0.12
 	public static final double EAT_ENERGY = 0.07; //0.05
 	public static final double EAT_SPEED = 0.5;
